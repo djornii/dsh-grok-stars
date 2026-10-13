@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Starfield">
+  <defs>
+    <radialGradient id="sky" cx="35%" cy="30%" r="85%">
+      <stop offset="0" stop-color="#263b68"/>
+      <stop offset="1" stop-color="#101522"/>
+    </radialGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="1.2" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+  <circle cx="32" cy="32" r="30" fill="url(#sky)"/>
+  <g fill="#e6f1ff">
+    <circle cx="14" cy="17" r="1.2"/><circle cx="49" cy="15" r=".9"/>
+    <circle cx="53" cy="39" r="1.1"/><circle cx="18" cy="48" r=".8"/>
+    <circle cx="39" cy="51" r=".7"/>
+  </g>
+  <path d="M31 12 34 27 49 30 34 33 31 48 28 33 13 30 28 27Z" fill="#b9d6ff" filter="url(#glow)"/>
+  <path d="m47 43 1.2 4.8L53 49l-4.8 1.2L47 55l-1.2-4.8L41 49l4.8-1.2Z" fill="#fff"/>
+</svg>

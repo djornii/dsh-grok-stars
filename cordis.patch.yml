@@ -1,0 +1,3 @@
+- insert:
+    - id: grok-stars
+      name: '@local/grok-stars'
