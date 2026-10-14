@@ -1,18 +1,35 @@
 {
-    "name": "@local/grok-stars",
+    "name": "dsh-grok-stars",
     "version": "1.1.0",
-    "private": true,
+    "description": "Grok-style animated starfield for the DeepSeek Harness new-session tab.",
+    "license": "MIT",
+    "author": "djornii",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/djornii/dsh-grok-stars.git"
+    },
+    "keywords": [
+        "dsh",
+        "dsh-plugin",
+        "deepseek-harness",
+        "starfield",
+        "grok"
+    ],
     "type": "module",
     "exports": {
         ".": "./index.js",
         "./client": "./client.js",
-        "./locale/*.json": "./locale/*.json"
+        "./locale/*.json": "./locale/*.json",
+        "./icon": "./icon.svg"
     },
     "files": [
         "index.js",
         "client.js",
+        "README.md",
+        "LICENSE",
         "cordis.patch.yml",
-        "locale/*.json"
+        "locale/*.json",
+        "icon.svg"
     ],
     "dsh": {
         "bundle": {
