@@ -7,6 +7,45 @@ window.__ModuleLoader__.load({
         );
         const h = React.createElement;
 
+        /* Star palette per color scheme. The motion (positions, sizes,
+           flicker rhythm) is scheme-independent; only the fill colors change:
+           white stars on the dark palette, black stars on the light one. */
+        const SCHEMES = {
+            dark: {
+                canvasOpacity: 0.34,
+                star: (flicker) => `rgba(255, 255, 255, ${flicker})`,
+                trailHead: (opacity) => `rgba(255, 255, 255, ${opacity})`,
+            },
+            light: {
+                canvasOpacity: 0.34,
+                star: (flicker) => `rgba(0, 0, 0, ${flicker})`,
+                trailHead: (opacity) => `rgba(0, 0, 0, ${opacity})`,
+            },
+        };
+
+        /* Scheme store fed from the `theme` service in apply (the service has
+           no subscribe of its own — continuous sync goes through the
+           `theme/change` context event). The store hands out the stable
+           palette object per scheme, so useSyncExternalStore re-renders the
+           canvas style only when the scheme actually flips. */
+        const schemeStore = {
+            palette: SCHEMES.dark,
+            listeners: new Set(),
+            subscribe(listener) {
+                schemeStore.listeners.add(listener);
+                return () => schemeStore.listeners.delete(listener);
+            },
+            getSnapshot() {
+                return schemeStore.palette;
+            },
+            set(colorScheme) {
+                const palette = SCHEMES[colorScheme] || SCHEMES.dark;
+                if (palette === schemeStore.palette) return;
+                schemeStore.palette = palette;
+                schemeStore.listeners.forEach((listener) => listener());
+            },
+        };
+
         /* Hover swim morph targets copied from the conversation hero fish
            (generated programmatically — parse the path's absolute M/C/L/Z
            commands, displace points with smoothstep falloff weights, emit the
@@ -22,6 +61,11 @@ window.__ModuleLoader__.load({
         function Starfield() {
             const canvasRef = React.useRef(null);
             const [visible, setVisible] = React.useState(false);
+            const palette = React.useSyncExternalStore(
+                schemeStore.subscribe,
+                schemeStore.getSnapshot,
+                schemeStore.getSnapshot,
+            );
 
             React.useEffect(() => {
                 const timer = window.setTimeout(() => setVisible(true), APPEAR_DELAY);
@@ -90,7 +134,7 @@ window.__ModuleLoader__.load({
                             Math.abs(Math.sin(time * 0.0011 + star.phase)) *
                                 0.46;
                         context.beginPath();
-                        context.fillStyle = `rgba(255, 255, 255, ${flicker})`;
+                        context.fillStyle = palette.star(flicker);
                         context.arc(x, y, star.size, 0, Math.PI * 2);
                         context.fill();
                     });
@@ -118,9 +162,9 @@ window.__ModuleLoader__.load({
                             );
                             trail.addColorStop(
                                 0,
-                                `rgba(235, 245, 255, ${opacity})`,
+                                palette.trailHead(opacity),
                             );
-                            trail.addColorStop(1, "rgba(175, 205, 255, 0)");
+                            trail.addColorStop(1, palette.trailHead(0));
                             context.strokeStyle = trail;
                             context.lineWidth = 1.5;
                             context.beginPath();
@@ -200,7 +244,7 @@ window.__ModuleLoader__.load({
                     width: "100vw",
                     height: "100vh",
                     display: "block",
-                    opacity: visible ? 0.34 : 0,
+                    opacity: visible ? palette.canvasOpacity : 0,
                     transition: `opacity ${FADE_DURATION}ms ease-in`,
                     pointerEvents: "none",
                     zIndex: 0,
@@ -270,8 +314,20 @@ window.__ModuleLoader__.load({
         }
 
         return {
-            inject: ["slots"],
+            inject: ["slots", "theme"],
             apply(ctx) {
+                /* Seed the scheme store from the service's initial snapshot
+                   and keep it synced: the theme service emits `theme/change`
+                   on every preference, registry, or system-scheme flip. */
+                const scheme = () =>
+                    ctx.theme.getTheme().active.colorScheme;
+                schemeStore.set(scheme());
+                ctx.effect(() =>
+                    ctx.on("theme/change", (snapshot) => {
+                        schemeStore.set(snapshot.active.colorScheme);
+                    }),
+                );
+
                 ctx.slots.inject("conversation.hero.brand.mark", () =>
                     ctx.slots.register(
                         {
